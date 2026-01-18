@@ -1,0 +1,76 @@
+from __future__ import annotations
+
+import asyncio
+from pathlib import Path
+from typing import List, Dict, Any
+
+import faiss
+import numpy as np
+import ollama
+
+
+class RAGEngine:
+    def __init__(self, model: str, embed_model: str, top_k: int = 4, max_context_chars: int = 2800):
+        self.model = model
+        self.embed_model = embed_model
+        self.top_k = top_k
+        self.max_context_chars = max_context_chars
+
+        self._index: faiss.Index | None = None
+        self._chunks: List[Dict[str, Any]] = []
+
+    def ingest(self, corpus_path: Path) -> None:
+        if not corpus_path.exists():
+            raise FileNotFoundError(f"Corpus not found at {corpus_path}")
+
+        text = corpus_path.read_text(encoding="utf-8")
+        for chunk in self._split_chunks(text):
+            vec = self._embed(chunk)
+            self._add_vector(vec, {"text": chunk, "source": str(corpus_path)})
+
+    def _split_chunks(self, text: str) -> List[str]:
+        raw_blocks = [b.strip() for b in text.split("\n\n") if b.strip()]
+        chunks: List[str] = []
+        current: List[str] = []
+        for block in raw_blocks:
+            if len(" ".join(current + [block])) > 600:
+                chunks.append(" ".join(current))
+                current = []
+            current.append(block)
+        if current:
+            chunks.append(" ".join(current))
+        return chunks
+
+    def _embed(self, text: str) -> np.ndarray:
+        response = ollama.embeddings(model=self.embed_model, prompt=text)
+        vec = np.array(response["embedding"], dtype=np.float32)
+        return vec
+
+    def _add_vector(self, vector: np.ndarray, metadata: Dict[str, Any]) -> None:
+        if self._index is None:
+            dim = int(vector.shape[0])
+            self._index = faiss.IndexFlatIP(dim)
+        normed = vector / np.linalg.norm(vector)
+        self._index.add(normed.reshape(1, -1))
+        self._chunks.append(metadata)
+
+    def query(self, question: str) -> str:
+        if not self._index or self._index.ntotal == 0:
+            return "I am not trained yet."
+
+        q_vec = self._embed(question)
+        q_vec = q_vec / np.linalg.norm(q_vec)
+        scores, idx = self._index.search(q_vec.reshape(1, -1), min(self.top_k, len(self._chunks)))
+        selected = [self._chunks[i]["text"] for i in idx[0] if i >= 0]
+        context = "\n\n".join(selected)[: self.max_context_chars]
+
+        prompt = (
+            "You are a concise Twitch bot. Use the provided context to answer the question. "
+            "If the context does not contain the answer, say you do not know.\n\n"
+            f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
+        )
+        reply = ollama.generate(model=self.model, prompt=prompt)
+        return reply.get("response", "").strip()
+
+    async def aquery(self, question: str) -> str:
+        return await asyncio.to_thread(self.query, question)
