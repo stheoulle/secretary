@@ -57,6 +57,8 @@ class RAGEngine:
     def query(self, question: str) -> str:
         if not self._index or self._index.ntotal == 0:
             return "I am not trained yet."
+        
+        print("Searching for relevant context...")
 
         q_vec = self._embed(question)
         q_vec = q_vec / np.linalg.norm(q_vec)
@@ -64,11 +66,16 @@ class RAGEngine:
         selected = [self._chunks[i]["text"] for i in idx[0] if i >= 0]
         context = "\n\n".join(selected)[: self.max_context_chars]
 
+        print("Generating answer...")
+
         prompt = (
-            "You are a concise Twitch bot. Use the provided context to answer the question. "
-            "If the context does not contain the answer, say you do not know.\n\n"
+            "You are a concise Twitch bot answering questions about Chloe. "
+            "IMPORTANT: Only answer based on the provided context. "
+            "If the context does not contain information to answer the question, respond with exactly: 'I don't know.' "
+            "Do not make up information or speculate. Be friendly and concise.\n\n"
             f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
         )
+        print(f"Thinking")
         reply = ollama.generate(model=self.model, prompt=prompt)
         return reply.get("response", "").strip()
 
