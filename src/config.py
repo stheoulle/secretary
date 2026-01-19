@@ -10,7 +10,6 @@ load_dotenv()
 
 @dataclass
 class TwitchConfig:
-    token: str
     client_id: str
     client_secret: str
     bot_id: str
@@ -48,7 +47,6 @@ def get_config() -> AppConfig:
         raise ValueError("TWITCH_CHANNELS must list at least one channel")
 
     twitch_cfg = TwitchConfig(
-        token=_require("TWITCH_OAUTH_TOKEN"),
         client_id=_require("TWITCH_CLIENT_ID"),
         client_secret=_require("TWITCH_CLIENT_SECRET"),
         bot_id=_require("TWITCH_BOT_ID"),

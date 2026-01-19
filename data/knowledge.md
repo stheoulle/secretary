@@ -91,7 +91,7 @@ We are hauling dirt
 Mercedes Arocs (automatic gearbox)
 
 **How many kg do you carry?**
-Chloe has a 40 tons
+The cargo is around 30 tons and the total is 44 tons.
 
 **What truck are we in? Merc?**
 Mercedes Arocs (automatic gearbox)

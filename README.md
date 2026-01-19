@@ -46,3 +46,10 @@ Runs a simple CLI interface to ask questions against the RAG engine without Twit
 - `src/twitch_client.py` wires Twitch chat to the RAG engine via the `!ask` command.
 - `src/main.py` bootstraps config, loads the corpus, and runs the Twitch bot.
 
+## API mode
+
+You can also run the bot in API mode to expose a simple HTTP endpoint for questions.
+
+```bash
+python -m src.main --mode api
+```

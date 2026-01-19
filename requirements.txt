@@ -3,3 +3,4 @@ python-dotenv>=1.0.1
 ollama>=0.1.9
 faiss-cpu>=1.8.0
 numpy>=1.26.4
+Flask>=2.3.0
