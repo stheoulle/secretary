@@ -33,11 +33,80 @@ I don't have information about Chloe speaking German.
 
 ## Stream Content
 
-**What are we hauling?**
-Chloe is probably hauling dirt on the stream.
+**Are you hauling sugar beets?**
+No we are hauling dirt
 
-**What game are you playing?**
-I don't have information about what game is being played right now. Ask Chloe directly!
+**where are you going today?**
+!map
+
+**salut tu est francaise ?**
+Chloe is Belgian. Please keep chat in English or Dutch
+
+**@Chloe__IRL whats the load?**
+Chloe is hauling dirt
+
+**Where you go?**
+!map
+
+**Does she mainly drive in the same country? Or does she have to drive through multiple?**
+Chloe only drives in Belgium
+
+**You own your truck or drive for a company?**
+Chloe drives for a company
+
+**What are we hauling ?**
+We are hauling dirt
+
+**what is the country?**
+This is Belgium
+
+**what’s the shark’s name?**
+The shark name is Sharky
+
+**oh yeah, what do we carry today ?**
+We are hauling dirt
+
+**Is your car automatic too?**
+The truck is automatic. The car is manual
+
+**what are we hauling today?**
+We are hauling dirt
+
+**do you work all over belgium? or mainly in a particular region?**
+Chloe works only in Belgium
+
+**For long have you been doing this streaming thing?**
+Chloe has been a truck driver for 7 years
+
+**So is she driving over borders or just driving around in Belgium?**
+Chloe is only driving in Belgium
+
+**How long have you been doing this job?**
+Chloe has been a truck driver for 7 years
+
+**What are we hauling.. ?**
+We are hauling dirt
+
+**What model of truck do you have?**
+Mercedes Arocs (automatic gearbox)
+
+**How many kg do you carry?**
+Chloe has a 40 tons
+
+**What truck are we in? Merc?**
+Mercedes Arocs (automatic gearbox)
+
+**where are you driving now? what country?**
+Chloe is driving in Belgium
+
+**what do you usually transport?**
+Chloe is hauling dirt
+
+**How many hours do you work a day?**
+Chloe usually works 10 to 12 hours
+
+**what is the cargo today?**
+Chloe is hauling dirt
 
 ## What I Don't Know
 
