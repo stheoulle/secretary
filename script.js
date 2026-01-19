@@ -20,10 +20,8 @@ const colorOccurrencesByStreamer = {};
 
 // Fonction pour obtenir un nouveau token d'accès
 async function generateNewOAuthToken() {
-  const clientId = "4fr9zyi3fis7xex9vuk9rwxc6mdydr";
-  const clientSecret = "x0aycc2elxkdbk6b01s8plrw11bljt";
-  //const clientId = process.env.TWITCH_CLIENT_ID;
-  //const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+  const clientId = process.env.TWITCH_CLIENT_ID;
+  const clientSecret = process.env.TWITCH_CLIENT_SECRET;
   const tokenUrl = "https://id.twitch.tv/oauth2/token";
 
   try {
