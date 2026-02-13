@@ -48,8 +48,9 @@ Runs a simple CLI interface to ask questions against the RAG engine without Twit
 
 ## API mode
 
-You can also run the bot in API mode to expose a simple HTTP endpoint for questions.
+You can also run the bot in API mode to expose a simple HTTP endpoint for questions. And then use the js client to connect to the twitch channel and forward questions from there.
 
 ```bash
 python -m src.main --mode api
+node script.js
 ```

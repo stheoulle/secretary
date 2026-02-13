@@ -3,7 +3,6 @@ const tmi = require("tmi.js");
 const fs = require("fs");
 const axios = require("axios");
 
-// Configuration de la connexion
 const opts = {
   identity: {
     username: process.env.TWITCH_USERNAME,
@@ -12,13 +11,10 @@ const opts = {
   channels: [],
 };
 
-// Créer un client
+// Create a client
 const client = new tmi.client(opts);
 
-// Dictionnaire pour stocker les couleurs et leurs occurrences par streamer
-const colorOccurrencesByStreamer = {};
-
-// Fonction pour obtenir un nouveau token d'accès
+// Function to get a new access token
 async function generateNewOAuthToken() {
   const clientId = process.env.TWITCH_CLIENT_ID;
   const clientSecret = process.env.TWITCH_CLIENT_SECRET;
@@ -34,18 +30,15 @@ async function generateNewOAuthToken() {
     });
 
     const newAccessToken = response.data.access_token;
-    console.log("Nouveau token d'accès généré avec succès.");
+    console.log("Successfully generated new access token.");
     return newAccessToken;
   } catch (error) {
-    console.error(
-      "Erreur lors de la génération du nouveau token d'accès :",
-      error,
-    );
+    console.error("Error generating new access token:", error);
     throw error;
   }
 }
 
-// Fonction pour récupérer les 100 meilleurs streamers Twitch
+// Function to get the top 100 Twitch streamers
 async function getTopStreamers() {
   try {
     const response = await axios.get("https://api.twitch.tv/helix/streams", {
@@ -61,43 +54,43 @@ async function getTopStreamers() {
     //const topStreamers = response.data.data.map((stream) => stream.user_name);
     //console.log("Top Streamers: %o", topStreamers);
     //opts.channels = topStreamers;
-    opts.channels = ["Chloe__IRL"];
+    opts.channels = ["Light_srh"];
     topStreamers = opts.channels;
     console.log("Channels to join: %o", opts.channels);
-
-    // Initialiser les dictionnaires pour chaque streamer
-    topStreamers.forEach((streamer) => {
-      colorOccurrencesByStreamer[streamer] = {};
-    });
 
     client.connect();
   } catch (error) {
     if (error.response && error.response.status === 401) {
-      // Si le token est invalide, générer un nouveau token
       try {
         const newToken = await generateNewOAuthToken();
         process.env.TWITCH_OAUTH_TOKEN = newToken;
         opts.identity.password = newToken;
-        // Réessayer de récupérer les meilleurs streamers
+        // Retry fetching the top streamers
         await getTopStreamers();
       } catch (tokenError) {
-        console.error("Échec de la génération du nouveau token :", tokenError);
-        process.exit(1); // Arrêter le script en cas d'échec
+        console.error("Failed to generate new token:", tokenError);
+        process.exit(1); // Stop the script on failure
       }
     } else {
-      console.error(
-        "Erreur lors de la récupération des meilleurs streamers :",
-        error,
-      );
+      console.error("Error fetching top streamers:", error);
     }
   }
 }
 
-// Écouter les messages de chat
+// Listen to chat messages
 client.on("message", (channel, tags, message, self) => {
+  if (self) return;
+
+  const username = tags["display-name"];
+  const streamer = channel.slice(1);
+
+  console.log(`[${streamer}] ${username}: ${message}`);
+
+  // DDetect questions and query the RAG
   const content = message.toLowerCase();
   const numberSpaces = (content.match(/\s+/g) || []).length;
-  if (content.includes("?") && numberSpaces > 2) {
+
+  if (content.includes("?") && numberSpaces > 2 && content.length < 50) {
     console.log("QUESTION DETECTED, querying RAG...");
     axios
       .post("http://localhost:5000/query", {
@@ -114,74 +107,7 @@ client.on("message", (channel, tags, message, self) => {
         console.error("Error querying RAG:", error);
       });
   }
-
-  if (self) return;
-
-  const userColor = tags.color;
-  const streamer = channel.slice(1); // Retirer le '#' du nom du canal
-
-  // Mettre à jour le dictionnaire des occurrences de couleurs pour le streamer
-  if (userColor && colorOccurrencesByStreamer[streamer]) {
-    if (colorOccurrencesByStreamer[streamer][userColor]) {
-      colorOccurrencesByStreamer[streamer][userColor]++;
-      console.log(
-        `🟢 ${tags["display-name"]} (couleur: ${userColor}) sur le stream de ${streamer}: ${message}`,
-      );
-    } else {
-      colorOccurrencesByStreamer[streamer][userColor] = 1;
-      console.log(
-        `🟢 ${tags["display-name"]} (couleur: ${userColor}) sur le stream de ${streamer}: ${message}`,
-      );
-    }
-  } else {
-    if (userColor != null) {
-      colorOccurrencesByStreamer[streamer] = {};
-      colorOccurrencesByStreamer[streamer][userColor] = 1;
-      console.log(
-        `🟡 ${tags["display-name"]} (couleur: ${userColor}) sur le stream de ${streamer}: ${message}`,
-      );
-    } else {
-      console.log("🔴 No color for this user ");
-    }
-  }
 });
 
-// Gestionnaire pour exporter les dictionnaires dans un CSV lors de l'arrêt du script
-process.on("SIGINT", () => {
-  // Exporter les occurrences des couleurs par streamer
-  let csvDataColors = "Streamer,Color,Count\n";
-  for (const [streamer, colors] of Object.entries(colorOccurrencesByStreamer)) {
-    for (const [color, count] of Object.entries(colors)) {
-      csvDataColors += `${streamer},${color},${count}\n`;
-    }
-  }
-  fs.writeFileSync("color_occurrences_by_streamer4.csv", csvDataColors);
-  console.log(
-    "\nOccurrences des couleurs par streamer exportées dans color_occurrences_by_streamer4.csv",
-  );
-
-  // Exporter la liste des streamers
-  const streamerNames = Object.keys(colorOccurrencesByStreamer);
-  const csvDataStreamers = "Streamer\n" + streamerNames.join("\n");
-  fs.writeFileSync("streamers_lis4t.csv", csvDataStreamers);
-  console.log("Liste des streamers exportée dans streamers_list4.csv");
-
-  process.exit();
-});
-
-// Écouter les utilisateurs qui rejoignent le chat
-client.on("join", (channel, username, self) => {
-  if (self) return;
-
-  console.log(`${username} a rejoint le chat`);
-});
-
-// Écouter les utilisateurs qui quittent le chat
-client.on("part", (channel, username, self) => {
-  if (self) return;
-
-  console.log(`${username} a quitté le chat`);
-});
-
-// Récupérer les meilleurs streamers et démarrer le client
+// Démarrer le processus
 getTopStreamers();
