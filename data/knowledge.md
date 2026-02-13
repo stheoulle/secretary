@@ -108,6 +108,12 @@ Chloe usually works 10 to 12 hours
 **what is the cargo today?**
 Chloe is hauling dirt
 
+**Is reading chat while driving ok?**
+Yes it is legal to stream while driving. Both by twitch and Belgian law. Please get informed and read the ToS properly.
+
+**what does your boss think of all the streaming while at work?**
+Chloe's boss is fine with the streaming.
+
 ## What I Don't Know
 
 If I don't have the information in my knowledge base, I will tell you "I don't know" or "I don't have that information." Do not make up answers about Chloe that are not explicitly in this file.
