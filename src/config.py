@@ -1,4 +1,7 @@
-from dataclasses import dataclass
+try:
+    from dataclasses import dataclass
+except ImportError as exc:  # pragma: no cover - Python 3.6 requires backport
+    raise RuntimeError("Missing 'dataclasses' dependency for Python 3.6") from exc
 from pathlib import Path
 from typing import List, Optional
 import os

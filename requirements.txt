@@ -1,6 +1,7 @@
-twitchio>=2.9.1
-python-dotenv>=1.0.1
-llama-cpp-python>=0.2.76
-faiss-cpu>=1.8.0
-numpy>=1.26.4
-Flask>=2.3.0
+twitchio<2.0
+python-dotenv>=0.21,<1.0
+llama-cpp-python<0.2
+faiss-cpu==1.7.4
+numpy==1.19.5
+Flask>=2.0,<2.1
+dataclasses>=0.8

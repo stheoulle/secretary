@@ -39,7 +39,8 @@ class TwitchRagBot(commands.Bot):
             await message.channel.send("Thinking...")
 
             try:
-                answer = await asyncio.to_thread(self.rag.query, content)
+                loop = asyncio.get_event_loop()
+                answer = await loop.run_in_executor(None, self.rag.query, content)
 
                 # Twitch message limit ≈ 500 chars
                 await message.channel.send(answer[:450])
@@ -54,5 +55,6 @@ class TwitchRagBot(commands.Bot):
     @commands.command(name="ask")
     async def ask(self, ctx: commands.Context, *, question: str):
         await ctx.send("Thinking...")
-        answer = await asyncio.to_thread(self.rag.query, question)
+        loop = asyncio.get_event_loop()
+        answer = await loop.run_in_executor(None, self.rag.query, question)
         await ctx.send(answer[:450])

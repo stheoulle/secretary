@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.11+
+- Python 3.6+
 - Ollama installed (used to download GGUFs that llama.cpp will load)
 - Twitch credentials (OAuth token, bot nick, channels).
 

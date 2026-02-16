@@ -1,14 +1,15 @@
 from pathlib import Path
 import sys
 import argparse
+from typing import Tuple
 from flask import Flask, request, jsonify
 
-from .config import get_config
+from .config import get_config, AppConfig
 from .rag import RAGEngine
 from .twitch_client import TwitchRagBot
 
 
-def bootstrap_rag() -> tuple[RAGEngine, str]:
+def bootstrap_rag() -> Tuple[RAGEngine, AppConfig]:
     """Initialize and return the RAG engine."""
     config = get_config()
 
