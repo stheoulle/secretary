@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 import os
 
 from dotenv import load_dotenv
-from typing import Optional
 
 load_dotenv()
 
@@ -37,7 +36,7 @@ class AppConfig:
     rag: RagConfig
 
 
-def _require(env_key: str, default: str | None = None) -> str:
+def _require(env_key: str, default: Optional[str] = None) -> str:
     value = os.getenv(env_key, default)
     if value is None or value == "":
         raise ValueError(f"Missing required environment variable: {env_key}")
