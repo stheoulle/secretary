@@ -13,10 +13,13 @@ def bootstrap_rag() -> tuple[RAGEngine, str]:
     config = get_config()
 
     rag = RAGEngine(
-        model=config.rag.model,
-        embed_model=config.rag.embed_model,
+        model_path=config.rag.model_path,
+        embed_model_path=config.rag.embed_model_path,
         top_k=config.rag.top_k,
         max_context_chars=config.rag.max_context_chars,
+        n_ctx=config.rag.n_ctx,
+        n_gpu_layers=config.rag.n_gpu_layers,
+        n_threads=config.rag.n_threads,
     )
 
     corpus_path = Path(config.rag.corpus_path)

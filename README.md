@@ -3,10 +3,9 @@
 ## Prerequisites
 
 - Python 3.11+
-- An Ollama daemon running locally with models pulled:
-  - `ollama serve` in a separate terminal (you need Ollama installed: <https://ollama.com/>)
-  - Chat model (e.g., `ollama pull llama3.1`)
-  - Embedding model (e.g., `ollama pull nomic-embed-text`)
+- Local GGUF models for llama.cpp:
+  - Chat model (e.g., Llama 3.1 Instruct GGUF)
+  - Embedding model (e.g., bge or nomic GGUF)
 - Twitch credentials (OAuth token, bot nick, channels).
 
 ## Setup
@@ -23,6 +22,13 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
+```
+
+1) Download GGUF models and set paths in `.env`:
+
+```
+LLAMA_CPP_MODEL_PATH=/absolute/path/to/your/chat-model.gguf
+LLAMA_CPP_EMBED_MODEL_PATH=/absolute/path/to/your/embedding-model.gguf
 ```
 
 1) Add your knowledge in `data/knowledge.md`. The default sample is already included.
@@ -42,7 +48,7 @@ Runs a simple CLI interface to ask questions against the RAG engine without Twit
 
 ## How it works
 
-- `src/rag.py` builds a simple in-memory FAISS index from your knowledge chunks, using Ollama embeddings.
+- `src/rag.py` builds a simple in-memory FAISS index from your knowledge chunks, using llama.cpp embeddings.
 - `src/twitch_client.py` wires Twitch chat to the RAG engine via the `!ask` command.
 - `src/main.py` bootstraps config, loads the corpus, and runs the Twitch bot.
 
@@ -51,7 +57,6 @@ Runs a simple CLI interface to ask questions against the RAG engine without Twit
 You can also run the bot in API mode to expose a simple HTTP endpoint for questions. And then use the js client to connect to the twitch channel and forward questions from there.
 
 ```bash
-ollama serve
 python -m src.main --mode api
 node script.js
 ```

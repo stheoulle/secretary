@@ -20,10 +20,13 @@ class TwitchConfig:
 
 @dataclass
 class RagConfig:
-    model: str
-    embed_model: str
+    model_path: str
+    embed_model_path: str
     top_k: int = 4
     max_context_chars: int = 2800
+    n_ctx: int = 4096
+    n_gpu_layers: int = 0
+    n_threads: int | None = None
     corpus_path: Path = Path("data/knowledge.md")
 
 
@@ -56,8 +59,11 @@ def get_config() -> AppConfig:
     )
 
     rag_cfg = RagConfig(
-        model=os.getenv("OLLAMA_MODEL", "llama3.1"),
-        embed_model=os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text"),
+        model_path=_require("LLAMA_CPP_MODEL_PATH"),
+        embed_model_path=_require("LLAMA_CPP_EMBED_MODEL_PATH"),
+        n_ctx=int(os.getenv("LLAMA_CPP_N_CTX", "4096")),
+        n_gpu_layers=int(os.getenv("LLAMA_CPP_N_GPU_LAYERS", "0")),
+        n_threads=(int(os.getenv("LLAMA_CPP_N_THREADS")) if os.getenv("LLAMA_CPP_N_THREADS") else None),
     )
 
     return AppConfig(twitch=twitch_cfg, rag=rag_cfg)

@@ -6,18 +6,45 @@ from typing import List, Dict, Any
 
 import faiss
 import numpy as np
-import ollama
+from llama_cpp import Llama
 
 
 class RAGEngine:
-    def __init__(self, model: str, embed_model: str, top_k: int = 4, max_context_chars: int = 2800):
-        self.model = model
-        self.embed_model = embed_model
+    def __init__(
+        self,
+        model_path: str,
+        embed_model_path: str,
+        top_k: int = 4,
+        max_context_chars: int = 2800,
+        n_ctx: int = 4096,
+        n_gpu_layers: int = 0,
+        n_threads: int | None = None,
+    ):
+        self.model_path = model_path
+        self.embed_model_path = embed_model_path
         self.top_k = top_k
         self.max_context_chars = max_context_chars
+        self.n_ctx = n_ctx
+        self.n_gpu_layers = n_gpu_layers
+        self.n_threads = n_threads
 
         self._index: faiss.Index | None = None
         self._chunks: List[Dict[str, Any]] = []
+        self._llm = Llama(
+            model_path=self.model_path,
+            n_ctx=self.n_ctx,
+            n_gpu_layers=self.n_gpu_layers,
+            n_threads=self.n_threads,
+            verbose=False,
+        )
+        self._embedder = Llama(
+            model_path=self.embed_model_path,
+            n_ctx=self.n_ctx,
+            n_gpu_layers=self.n_gpu_layers,
+            n_threads=self.n_threads,
+            embedding=True,
+            verbose=False,
+        )
         self._system_prompt = (
             "You are a concise Twitch bot answering questions about Chloe. "
             "IMPORTANT: Only answer based on the provided context. "
@@ -48,8 +75,8 @@ class RAGEngine:
         return chunks
 
     def _embed(self, text: str) -> np.ndarray:
-        response = ollama.embeddings(model=self.embed_model, prompt=text)
-        vec = np.array(response["embedding"], dtype=np.float32)
+        response = self._embedder.create_embedding(text)
+        vec = np.array(response["data"][0]["embedding"], dtype=np.float32)
         return vec
 
     def _add_vector(self, vector: np.ndarray, metadata: Dict[str, Any]) -> None:
@@ -82,15 +109,12 @@ class RAGEngine:
         ]
         
         print(f"Thinking")
-        reply = ollama.chat(
-            model=self.model, 
+        reply = self._llm.create_chat_completion(
             messages=messages,
-            options={
-                "num_ctx": 4096,  # Context window size
-            },
-            keep_alive="5m"  # Keep model loaded for 5 minutes
+            temperature=0.2,
+            max_tokens=256,
         )
-        return reply.get("message", {}).get("content", "").strip()
+        return reply["choices"][0]["message"]["content"].strip()
 
     async def aquery(self, question: str) -> str:
         return await asyncio.to_thread(self.query, question)
