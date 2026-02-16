@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 import asyncio
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 import faiss
 import numpy as np
@@ -18,7 +16,7 @@ class RAGEngine:
         max_context_chars: int = 2800,
         n_ctx: int = 4096,
         n_gpu_layers: int = 0,
-        n_threads: int | None = None,
+        n_threads: Optional[int] = None,
     ):
         self.model_path = model_path
         self.embed_model_path = embed_model_path
@@ -28,7 +26,7 @@ class RAGEngine:
         self.n_gpu_layers = n_gpu_layers
         self.n_threads = n_threads
 
-        self._index: faiss.Index | None = None
+        self._index: Optional[faiss.Index] = None
         self._chunks: List[Dict[str, Any]] = []
         self._llm = Llama(
             model_path=self.model_path,
@@ -101,8 +99,6 @@ class RAGEngine:
 
         print("Generating answer...")
 
-        # Use chat API with system message for better context management
-        # keep_alive keeps model loaded in memory for faster subsequent requests
         messages = [
             {"role": "system", "content": f"{self._system_prompt}\n\nContext:\n{context}"},
             {"role": "user", "content": question}
