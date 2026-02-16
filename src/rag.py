@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-import faiss
+import hnswlib
 import numpy as np
 from llama_cpp import Llama
 
@@ -26,7 +26,8 @@ class RAGEngine:
         self.n_gpu_layers = n_gpu_layers
         self.n_threads = n_threads
 
-        self._index: Optional[faiss.Index] = None
+        self._index: Optional[hnswlib.Index] = None
+        self._embedding_dim: Optional[int] = None
         self._chunks: List[Dict[str, Any]] = []
         self._llm = Llama(
             model_path=self.model_path,
@@ -80,21 +81,24 @@ class RAGEngine:
     def _add_vector(self, vector: np.ndarray, metadata: Dict[str, Any]) -> None:
         if self._index is None:
             dim = int(vector.shape[0])
-            self._index = faiss.IndexFlatIP(dim)
-        normed = vector / np.linalg.norm(vector)
-        self._index.add(normed.reshape(1, -1))
+            self._embedding_dim = dim
+            self._index = hnswlib.Index(space='cosine', dim=dim)
+            self._index.init_index(max_elements=10000, ef_construction=200, M=16)
+        
+        idx = len(self._chunks)
+        self._index.add_items(vector.reshape(1, -1), np.array([idx]))
         self._chunks.append(metadata)
 
     def query(self, question: str) -> str:
-        if not self._index or self._index.ntotal == 0:
+        if not self._index or len(self._chunks) == 0:
             return "I am not trained yet."
         
         print("Searching for relevant context...")
 
         q_vec = self._embed(question)
-        q_vec = q_vec / np.linalg.norm(q_vec)
-        scores, idx = self._index.search(q_vec.reshape(1, -1), min(self.top_k, len(self._chunks)))
-        selected = [self._chunks[i]["text"] for i in idx[0] if i >= 0]
+        k = min(self.top_k, len(self._chunks))
+        idx, distances = self._index.knn_query(q_vec.reshape(1, -1), k=k)
+        selected = [self._chunks[i]["text"] for i in idx[0] if i < len(self._chunks)]
         context = "\n\n".join(selected)[: self.max_context_chars]
 
         print("Generating answer...")
