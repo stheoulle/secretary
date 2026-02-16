@@ -58,9 +58,12 @@ def run_twitch(config) -> None:
 
 def run_api(port: int = 5000) -> None:
     """Start the API server."""
+    print("Bootstrapping RAG engine...")
     rag, config = bootstrap_rag()
+    print("RAG engine initialized. Starting API server...")
     
     app = Flask(__name__)
+    print("API server initialized. Setting up routes...")
     
     @app.route("/query", methods=["POST"])
     def query_endpoint():
