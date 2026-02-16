@@ -111,9 +111,13 @@ def main() -> None:
         default=5000,
         help="Port to run the API server on (only used with --mode api)",
     )
+
+    print("Parsing command-line arguments...")
     args = parser.parse_args()
+    print(f"Selected mode: {args.mode}")
 
     rag, config = bootstrap_rag()
+    print("RAG engine is ready.")
 
     if args.mode == "cli":
         run_cli(rag)
