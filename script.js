@@ -6,7 +6,8 @@ const axios = require("axios");
 const opts = {
   identity: {
     username: process.env.TWITCH_USERNAME,
-    password: process.env.TWITCH_OAUTH_TOKEN,
+    // Chat OAuth token must be a user token with "oauth:" prefix
+    password: process.env.TWITCH_CHAT_OAUTH_TOKEN,
   },
   channels: [],
 };
@@ -44,7 +45,7 @@ async function getTopStreamers() {
     const response = await axios.get("https://api.twitch.tv/helix/streams", {
       headers: {
         "Client-ID": process.env.TWITCH_CLIENT_ID,
-        Authorization: `Bearer ${process.env.TWITCH_OAUTH_TOKEN}`,
+        Authorization: `Bearer ${process.env.TWITCH_APP_ACCESS_TOKEN}`,
       },
       params: {
         first: 100,
@@ -58,13 +59,15 @@ async function getTopStreamers() {
     topStreamers = opts.channels;
     console.log("Channels to join: %o", opts.channels);
 
-    client.connect();
+    client.connect().catch((error) => {
+      console.error("Error connecting to Twitch chat:", error);
+    });
+    console.log("Connected to Twitch chat, listening for messages...");
   } catch (error) {
     if (error.response && error.response.status === 401) {
       try {
         const newToken = await generateNewOAuthToken();
-        process.env.TWITCH_OAUTH_TOKEN = newToken;
-        opts.identity.password = newToken;
+        process.env.TWITCH_APP_ACCESS_TOKEN = newToken;
         // Retry fetching the top streamers
         await getTopStreamers();
       } catch (tokenError) {
@@ -100,7 +103,7 @@ client.on("message", (channel, tags, message, self) => {
         const answer = response.data.answer;
         console.log(`RAG Answer: ${answer}`);
         client.say(channel, answer).catch((err) => {
-          console.error("Error sending message to chat:", err.message);
+          console.error("Error sending message to chat:", err);
         });
       })
       .catch((error) => {
