@@ -4,6 +4,7 @@ from typing import List
 import os
 
 from dotenv import load_dotenv
+from typing import Optional
 
 load_dotenv()
 
@@ -26,7 +27,7 @@ class RagConfig:
     max_context_chars: int = 2800
     n_ctx: int = 4096
     n_gpu_layers: int = 0
-    n_threads: int | None = None
+    n_threads: Optional[int] = None
     corpus_path: Path = Path("data/knowledge.md")
 
 
