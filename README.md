@@ -3,9 +3,7 @@
 ## Prerequisites
 
 - Python 3.11+
-- Local GGUF models for llama.cpp:
-  - Chat model (e.g., Llama 3.1 Instruct GGUF)
-  - Embedding model (e.g., bge or nomic GGUF)
+- Ollama installed (used to download GGUFs that llama.cpp will load)
 - Twitch credentials (OAuth token, bot nick, channels).
 
 ## Setup
@@ -24,11 +22,25 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-1) Download GGUF models and set paths in `.env`:
+1) Download models with Ollama and point llama.cpp to those files:
 
-```
-LLAMA_CPP_MODEL_PATH=/absolute/path/to/your/chat-model.gguf
-LLAMA_CPP_EMBED_MODEL_PATH=/absolute/path/to/your/embedding-model.gguf
+```bash
+ollama pull llama3.1:8b-instruct-q4_K_M
+ollama pull nomic-embed-text:latest
+
+# Linux (this setup): Ollama models root
+OLLAMA_MODELS_ROOT=/usr/share/ollama/.ollama/models
+
+# Ollama stores GGUF blobs without a .gguf extension; use the manifest to find the blob
+cat $OLLAMA_MODELS_ROOT/manifests/registry.ollama.ai/library/llama3.1/8b-instruct-q4_K_M
+cat $OLLAMA_MODELS_ROOT/manifests/registry.ollama.ai/library/nomic-embed-text/latest
+
+# The manifest lists sha256 digests; the GGUF blob is in:
+# $OLLAMA_MODELS_ROOT/blobs/sha256-<digest>
+
+# Example values from the manifests above:
+LLAMA_CPP_MODEL_PATH=$OLLAMA_MODELS_ROOT/blobs/sha256-667b0c1932bc6ffc593ed1d03f895bf2dc8dc6df21db3042284a6f4416b06a29
+LLAMA_CPP_EMBED_MODEL_PATH=$OLLAMA_MODELS_ROOT/blobs/sha256-970aa74c0a90ef7482477cf803618e776e173c007bf957f635f1015bfcfef0e6
 ```
 
 1) Add your knowledge in `data/knowledge.md`. The default sample is already included.
