@@ -98,6 +98,7 @@ def run_api(port: int = 5000) -> None:
 
 
 def main() -> None:
+    print("Starting Twitch RAG Bot application...")
     parser = argparse.ArgumentParser(description="Twitch RAG Bot")
     parser.add_argument(
         "--mode",
