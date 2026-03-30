@@ -18,6 +18,12 @@ class RAGEngine:
 
         self._index: faiss.Index | None = None
         self._chunks: List[Dict[str, Any]] = []
+        self._system_prompt = (
+            "You are a concise Twitch bot answering questions about Chloe. "
+            "IMPORTANT: Only answer based on the provided context. "
+            "If the context does not contain information to answer the question, respond with exactly: 'I don't know.' "
+            "Do not make up information or speculate. Be friendly and concise."
+        )
 
     def ingest(self, corpus_path: Path) -> None:
         if not corpus_path.exists():
@@ -57,6 +63,8 @@ class RAGEngine:
     def query(self, question: str) -> str:
         if not self._index or self._index.ntotal == 0:
             return "I am not trained yet."
+        
+        print("Searching for relevant context...")
 
         q_vec = self._embed(question)
         q_vec = q_vec / np.linalg.norm(q_vec)
@@ -64,13 +72,25 @@ class RAGEngine:
         selected = [self._chunks[i]["text"] for i in idx[0] if i >= 0]
         context = "\n\n".join(selected)[: self.max_context_chars]
 
-        prompt = (
-            "You are a concise Twitch bot. Use the provided context to answer the question. "
-            "If the context does not contain the answer, say you do not know.\n\n"
-            f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
+        print("Generating answer...")
+
+        # Use chat API with system message for better context management
+        # keep_alive keeps model loaded in memory for faster subsequent requests
+        messages = [
+            {"role": "system", "content": f"{self._system_prompt}\n\nContext:\n{context}"},
+            {"role": "user", "content": question}
+        ]
+        
+        print(f"Thinking")
+        reply = ollama.chat(
+            model=self.model, 
+            messages=messages,
+            options={
+                "num_ctx": 4096,  # Context window size
+            },
+            keep_alive="5m"  # Keep model loaded for 5 minutes
         )
-        reply = ollama.generate(model=self.model, prompt=prompt)
-        return reply.get("response", "").strip()
+        return reply.get("message", {}).get("content", "").strip()
 
     async def aquery(self, question: str) -> str:
         return await asyncio.to_thread(self.query, question)
